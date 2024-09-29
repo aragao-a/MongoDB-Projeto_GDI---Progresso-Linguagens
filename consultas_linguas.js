@@ -117,41 +117,7 @@ db["estudantesLinguas"].updateMany(
     { $addToSet: { "idiomas_aprendidos.$.fases_concluidas": "Fase 2" } }
 );
 
-// Consulta SET, subsequente
-
-db["estudantesLinguas"].updateOne(
-    { nome: "Flavio Roberto", "idiomas_aprendidos.idioma": "Espanhol" },
-    { $set: { "idiomas_aprendidos.$.nivel_fluencia": "Intermediario" } }
-);
-  
-// Consulta MAP_REDUCE e RENAME_COLLECTION
-
-db["estudantesLinguas"].mapReduce(
-
-    function() {
-
-      this.idiomas_aprendidos.forEach(function(idioma) {
-        emit(idioma.idioma, idioma.fases_concluidas.length);
-      });
-    },
-    function(key, values) {
-      return Array.sum(values);
-    },
-    {
-      out: "quantificador_de_progresso"
-    }
-);
-  
-db["quantificador_de_progresso"].renameCollection("medidor_progresso");
-
-// Consulta TEXT e SEARCH
-
-db["estudantesLinguas"].createIndex({ nome: "text" }); // Foco de procura no campo NOME
-
-// Busca por documentos que CONTÉM a palavra "Neto"
-db["estudantesLinguas"].find({ $text: { $search: "Neto" } });
-
-// Consulta COND
+// Consulta SET e COND - Checando o nivel de fluencia apropriado pra fases alteradas
 
 db["estudantesLinguas"].updateMany( {}
 
@@ -192,3 +158,30 @@ db["estudantesLinguas"].updateMany( {}
     ]
 );
 
+  
+// Consulta MAP_REDUCE e RENAME_COLLECTION
+
+db["estudantesLinguas"].mapReduce(
+
+    function() {
+
+      this.idiomas_aprendidos.forEach(function(idioma) {
+        emit(idioma.idioma, idioma.fases_concluidas.length);
+      });
+    },
+    function(key, values) {
+      return Array.sum(values);
+    },
+    {
+      out: "quantificador_de_progresso"
+    }
+);
+  
+db["quantificador_de_progresso"].renameCollection("medidor_progresso");
+
+// Consulta TEXT e SEARCH
+
+db["estudantesLinguas"].createIndex({ nome: "text" }); // Foco de procura no campo NOME
+
+// Busca por documentos que CONTÉM a palavra "Neto"
+db["estudantesLinguas"].find({ $text: { $search: "Neto" } });
