@@ -148,5 +148,47 @@ db["quantificador_de_progresso"].renameCollection("medidor_progresso");
 
 db["estudantesLinguas"].createIndex({ nome: "text" }); // Foco de procura no campo NOME
 
-// Busca por documentos que contenham a palavra "Neto"
+// Busca por documentos que CONTÉM a palavra "Neto"
 db["estudantesLinguas"].find({ $text: { $search: "Neto" } });
+
+// Consulta COND
+
+db["estudantesLinguas"].updateMany( {}
+
+    [
+        {
+            $set: {
+                "idiomas_aprendidos": {
+                    $map: {
+                        input: "$idiomas_aprendidos",
+                        as: "idioma",
+                        in: {
+                            idioma: "$$idioma.idioma",
+                            nivel_fluencia: {
+                                $cond: {
+
+                                    if: { $gte: [{ $size: "$$idioma.fases_concluidas" }, 4] },
+
+                                    then: "Avancado",
+                                    else: {
+
+                                        $cond: {
+
+                                            if: { $gte: [{ $size: "$$idioma.fases_concluidas" }, 2] },
+
+                                            then: "Intermediario",
+                                            else: "Iniciante"
+                                        }
+                                    }
+                                }
+                            },
+                            professor: "$$idioma.professor",
+                            fases_concluidas: "$$idioma.fases_concluidas"
+                        }
+                    }
+                }
+            }
+        }
+    ]
+);
+
