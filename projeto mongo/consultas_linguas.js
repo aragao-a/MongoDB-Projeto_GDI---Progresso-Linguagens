@@ -139,20 +139,21 @@ function alunosIdioma(idioma) {
 alunosIdioma("Ingles");
 
 // Consulta ALL
-// Find students who have completed all phases
+// Acha os estudantes que completaram todas as fases
 db["estudantesLinguas"].find({
     "turmas.fases_concluidas": { $all: ["Fase 1", "Fase 2", "Fase 3", "Fase 4"] }
 }).pretty();
 
 // Consulta UPDATE_MANY e ADD_TO_SET
-// Advance all 'Espanhol' students to 'Fase 2'
+// Avança todos os estudantes de espanhol da turma ES01 para a fase 2, caso já não estejam
 db["estudantesLinguas"].updateMany(
     { "turmas.codigo": "ES01" },
     { $addToSet: { "turmas.$[i].fases_concluidas": "Fase 2" } },
     { arrayFilters: [{ "i.codigo": "ES01" }] }
 );
 
-// Update 'nivel_fluencia' based on 'fases_concluidas'
+//SET MAP
+//Da o uptade no nivel de fluencia com base no número de fases concluidas
 db["estudantesLinguas"].aggregate([
     {
         $set: {turmas: {$map: {
@@ -182,7 +183,7 @@ db["estudantesLinguas"].aggregate([
     { $merge: { into: "estudantesLinguas", whenMatched: "replace" } }
 ]);
 
-// Consulta MAP_REDUCE e RENAME_COLLECTION
+// Consulta MAP_REDUCE
 db["estudantesLinguas"].mapReduce(
     function () {
         this.turmas.forEach(function (turma) {
